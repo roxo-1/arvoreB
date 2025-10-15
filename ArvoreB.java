@@ -110,7 +110,7 @@ public class ArvoreB {
      * Realiza a cisão (split) de um filho cheio 'y' do nó pai 'x'.
      * O filho 'y' está no índice 'i' de 'x.filhos'.
      */
-    private void cisaoFilho(NoArvoreB x, int i, NoArvoreB y) {
+    private void cisaoFilho(NoArvoreB x, int i, NoArvoreB y) {//o erro tá aqui na cisão
         // y (o nó cheio) será dividido em dois: y (o original) e z (o novo nó)
         NoArvoreB z = new NoArvoreB(y.ehFolha);
 
