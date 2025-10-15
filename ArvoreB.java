@@ -8,21 +8,24 @@ import java.util.List;
  * MIN_CHAVES = t - 1 = 1
  */
 class NoArvoreB {
-    // Constantes definidas para t=2 (Ordem 4)
-    final int MAX_CHAVES = 3; 
-    final int MIN_CHAVES = 1;
-    
-    // Lista de chaves ordenadas dentro do nó
-    List<Integer> chaves; 
-    // Lista de ponteiros para os filhos. O número de filhos é sempre 'chaves.size() + 1'
+    int t;//grau minímo
+    boolean ehFolha;
+    List<Integer> chaves;
     List<NoArvoreB> filhos;
     
-    boolean ehFolha;
-
-    public NoArvoreB(boolean ehFolha) {
+    public NoArvoreB(boolean ehFolha, int t) {
         this.ehFolha = ehFolha;
+        this.t = t;
         this.chaves = new ArrayList<>();
         this.filhos = new ArrayList<>();
+    }
+
+    public int getMinChaves(){
+        return t-1;
+    }
+
+    public int getMaxChaves(){
+        return 2*t -1;
     }
 
     // Método auxiliar para exibir o nó
@@ -38,6 +41,7 @@ class NoArvoreB {
 public class ArvoreB {
 
     private NoArvoreB raiz;
+    int t = 2;
 
     public ArvoreB() {
         // Inicialmente, a árvore está vazia.
@@ -50,14 +54,14 @@ public class ArvoreB {
     public void inserir(int chave) {
         if (raiz == null) {
             // Caso 1: Árvore vazia. Cria uma nova raiz (que é folha).
-            raiz = new NoArvoreB(true);
+            raiz = new NoArvoreB(true, t);
             raiz.chaves.add(chave);
             return;
         }
 
         // Caso 2: A raiz está cheia (overflow na raiz).
-        if (raiz.chaves.size() == raiz.MAX_CHAVES) {
-            NoArvoreB novaRaiz = new NoArvoreB(false);
+        if (raiz.chaves.size() == raiz.getMaxChaves()) {
+            NoArvoreB novaRaiz = new NoArvoreB(false, t);
             novaRaiz.filhos.add(raiz);
             
             // Faz a cisão (split) do nó original (antiga raiz)
@@ -94,7 +98,7 @@ public class ArvoreB {
             i++; // 'i' é o índice do filho onde a chave deve descer
 
             // Verifica se o filho está cheio (se houver overflow, faz a cisão)
-            if (x.filhos.get(i).chaves.size() == x.MAX_CHAVES) {
+            if (x.filhos.get(i).chaves.size() == x.getMaxChaves()) {
                 cisaoFilho(x, i, x.filhos.get(i));
                 
                 // Após a cisão, determina em qual dos novos filhos a chave deve continuar.
@@ -110,61 +114,51 @@ public class ArvoreB {
      * Realiza a cisão (split) de um filho cheio 'y' do nó pai 'x'.
      * O filho 'y' está no índice 'i' de 'x.filhos'.
      */
-    private void cisaoFilho(NoArvoreB x, int i, NoArvoreB y) {//o erro tá aqui na cisão
-        /*  y (o nó cheio) será dividido em dois: y (o original) e z (o novo nó)*/
-        NoArvoreB z = new NoArvoreB(y.ehFolha);
+    private void cisaoFilho(NoArvoreB pai, int indice, NoArvoreB cheio) {
+        int tLocal = cheio.t; // grau mínimo
+        NoArvoreB novo = new NoArvoreB(cheio.ehFolha, tLocal);
 
-        // 1. Chave Promovida (Mediana):
-        // A chave do meio (índice MIN_CHAVES = 1, para t=2) de y é promovida.
-        int chavePromovida = y.chaves.get(y.MIN_CHAVES); 
-        
-        // 2. Cisão: Copia as chaves maiores para o novo nó 'z'.
-        // Z recebe as chaves na posição 2 (d+1) e 3 (2d).
-        for (int j = 0; j < y.MIN_CHAVES; j++) {
-            z.chaves.add(y.chaves.get(y.MIN_CHAVES + j + 1));
+        // guarda a chave mediana antes de alterar as listas
+        int mediana = cheio.chaves.get(tLocal - 1);
+
+        // 1) copia as últimas (t-1) chaves de 'cheio' para 'novo'
+        for (int j = 0; j < tLocal - 1; j++) {
+            novo.chaves.add(cheio.chaves.get(tLocal + j));
         }
-        
-        // 3. Se 'y' não for folha, 'z' também herda os filhos.
-        if (!y.ehFolha) {
-            // 'z' recebe os últimos 't' (ou MIN_CHAVES + 1) filhos de 'y'.
-            for (int j = 0; j <= y.MIN_CHAVES+1; j++) {
-                z.filhos.add(y.filhos.get(y.MIN_CHAVES + j + 1));
+
+        // 2) se não for folha, mover os últimos t filhos
+        if (!cheio.ehFolha) {
+            for (int j = 0; j < tLocal; j++) {
+                novo.filhos.add(cheio.filhos.get(tLocal + j));
             }
-            // Remove os ponteiros de 'y' que foram para 'z'
-            y.filhos.subList(y.MIN_CHAVES + 1, y.filhos.size()).clear();
         }
 
-        // 4. Finaliza a partição em 'y'.
-        // Remove a chave promovida (índice 1) e as chaves que foram para 'z'.
-        y.chaves.subList(y.MIN_CHAVES, y.chaves.size()).clear();
+        // 3) reduzir 'cheio' removendo chaves e filhos movidos
+        // 'cheio' deve ficar com as primeiras (t-1) chaves (índices 0..t-2)
+        cheio.chaves.subList(tLocal - 1, cheio.chaves.size()).clear(); // remove mediana e as da direita
+        if (!cheio.ehFolha) {
+            cheio.filhos.subList(tLocal, cheio.filhos.size()).clear();
+        }
 
-        // 5. Propagação: Insere a Chave Promovida no Pai 'x'.
-        x.filhos.add(i + 1, z); // O novo nó 'z' é adicionado como novo filho à direita de 'y'.
-        x.chaves.add(i, chavePromovida); // A chave promovida é inserida no pai 'x'.
+        // 4) inserir 'novo' como filho do pai à direita de 'cheio'
+        pai.filhos.add(indice + 1, novo);
+
+        // 5) inserir a mediana no pai
+        pai.chaves.add(indice, mediana);
     }
 
     // --- Métodos de Visualização ---
     
-    public void imprimir() {
-        System.out.println("Estrutura da Árvore:");
-        if (raiz != null) {
-            imprimirNo(raiz, 0);
-        } else {
-            System.out.println("Árvore vazia.");
-        }
+   public void imprimir() {
+        imprimirNo(raiz, 0);
     }
 
     private void imprimirNo(NoArvoreB no, int nivel) {
-        // Usa espaços para recuo
-        String recuo = "  ".repeat(nivel); 
-        // Imprime o nó atual (lista de chaves)
-        System.out.println(recuo + no.chaves.toString());
-
-        if (!no.ehFolha) {
-            // Imprime os filhos recursivamente
-            for (NoArvoreB filho : no.filhos) {
-                imprimirNo(filho, nivel + 1);
-            }
+        if (no == null) return;
+        String indent = " ".repeat(nivel * 4);
+        System.out.println(indent + "Nivel " + nivel + " chaves: " + no.chaves);
+        for (NoArvoreB f : no.filhos) {
+            imprimirNo(f, nivel + 1);
         }
     }
 
