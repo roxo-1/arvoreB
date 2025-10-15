@@ -111,7 +111,7 @@ public class ArvoreB {
      * O filho 'y' está no índice 'i' de 'x.filhos'.
      */
     private void cisaoFilho(NoArvoreB x, int i, NoArvoreB y) {//o erro tá aqui na cisão
-        // y (o nó cheio) será dividido em dois: y (o original) e z (o novo nó)
+        /*  y (o nó cheio) será dividido em dois: y (o original) e z (o novo nó)*/
         NoArvoreB z = new NoArvoreB(y.ehFolha);
 
         // 1. Chave Promovida (Mediana):
