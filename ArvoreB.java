@@ -116,20 +116,19 @@ public class ArvoreB {
 
         // 1. Chave Promovida (Mediana):
         // A chave do meio (índice MIN_CHAVES = 1, para t=2) de y é promovida.
-        int chavesParaZ  = y.MAX_CHAVES - y.MIN_CHAVES;
-        int chavePromovida =  y.chaves.get(y.MIN_CHAVES); 
+        int chavePromovida = y.chaves.get(y.MIN_CHAVES); 
         
         // 2. Cisão: Copia as chaves maiores para o novo nó 'z'.
         // Z recebe as chaves na posição 2 (d+1) e 3 (2d).
-        for (int j = 0; j < chavesParaZ ; j++) {
-            z.chaves.add(y.chaves.get(y.MIN_CHAVES + 1 + j));
+        for (int j = 0; j < y.MIN_CHAVES; j++) {
+            z.chaves.add(y.chaves.get(y.MIN_CHAVES + j + 1));
         }
         
         // 3. Se 'y' não for folha, 'z' também herda os filhos.
         if (!y.ehFolha) {
             // 'z' recebe os últimos 't' (ou MIN_CHAVES + 1) filhos de 'y'.
-            for (int j = 0; j <= chavesParaZ +1; j++) {
-                z.filhos.add(y.filhos.get(y.MIN_CHAVES + 1 + j));
+            for (int j = 0; j <= y.MIN_CHAVES+1; j++) {
+                z.filhos.add(y.filhos.get(y.MIN_CHAVES + j + 1));
             }
             // Remove os ponteiros de 'y' que foram para 'z'
             y.filhos.subList(y.MIN_CHAVES + 1, y.filhos.size()).clear();
